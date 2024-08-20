@@ -38,18 +38,43 @@ def npr_info():
             print(Headline3.text)
             link3 = Headline3.get_attribute('href')
             print(link3)
+            print("\n")
             return #exists once successful 
         except (NoSuchElementException, TimeoutException, WebDriverException):
             #print(f"Trouble accessing {url}, trying next link.")
             pass
-    
     print("There seems to be a problem accessing NPR at the moment.")
 
+#Web Scrapping Portion for The BBC
 def BBC_info():
-    #we need a try catch statement since the BBC may use a live link, or a internal link for the first few articles
-    driver.get("https://www.bbc.com/news")
-    Headline1 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[1]/div/div/div[1]/a/div/div[2]/div[1]/div/h2')
-    Headline2 =  
-    print(Headline1.text)
+    url = "https://www.bbc.com/news"
+    #we need a try catch statement for the main story as sometimes it maybe a live link, which changes the structure of the DOM
+    try:
+        driver.get(url)
+        Headline1 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[1]/div/div/div[1]/a/div/div[2]/div[1]/div/h2')
+        link1 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[1]/div/div/div[1]/a')
+        link1 = link1.get_attribute("href")
+        print(Headline1.text)
+        print(link1)
+    except (NoSuchElementException, TimeoutException, WebDriverException):
+        print(f"Front Page Article from {url}, can't be loaded")
+
+    #try catch for the Side Stories
+    try:
+        driver.get(url)
+        Headline2 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[2]/div/div/a/div/div[2]/div[1]/div/h2')
+        link2 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[2]/div/div/a')
+        link2 = link2.get_attribute("href")
+        print(Headline2.text)
+        print(link2)
+        Headline3 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[4]/div[1]/div/a/div/div/div[1]/div/h2')
+        link3 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[4]/div[1]/div/a')
+        link3 = link3.get_attribute("href")
+        print(Headline3.text)
+        print(link3)
+        return
+    except (NoSuchElementException, TimeoutException, WebDriverException):
+        print("There was an error accessing the two side articles")
+
 main()
 driver.quit()
