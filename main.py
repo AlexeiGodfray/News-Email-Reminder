@@ -1,18 +1,24 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
+import time
 
 chrome_options = Options()
-# chrome_options.add_argument("--disable-extensions")
+#ad block may influence the site interaction
+chrome_options.add_argument("--disable-extensions")
 # chrome_options.add_argument("--disable-gpu")
 # chrome_options.add_argument("--no-sandbox") # linux only
 chrome_options.add_argument("--headless=new") # for Chrome >= 109
 driver = webdriver.Chrome(options=chrome_options)
 
 def main():
+    print("The News for ")
     npr_info()
     BBC_info()
+    Yahoo()
 
 def npr_info():
     urls = [
@@ -72,9 +78,38 @@ def BBC_info():
         link3 = link3.get_attribute("href")
         print(Headline3.text)
         print(link3)
-        return
     except (NoSuchElementException, TimeoutException, WebDriverException):
         print("There was an error accessing the two side articles")
+
+    print("\n" + "\n")
+
+#Yahoo stock markt Information 
+def Yahoo():
+    driver.get('https://finance.yahoo.com/quote/%5EGSPC/')
+    try:
+        indexName500 = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[1]/div/section/h1')
+        print(indexName500.text)
+        marketPrice500 = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[1]/span')
+        print(marketPrice500.text)
+        indexChange500 = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[2]/span')
+        print(indexChange500.text)
+        marketPercentage = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[3]')
+        marketPercentageValue = marketPercentage.get_attribute("data-value")
+        print(marketPercentageValue)
+        print("\n" + "\n")
+
+        driver.get('https://finance.yahoo.com/quote/%5EIXIC/')
+        indexNameNas = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[1]/div/section/h1')
+        print(indexNameNas.text)
+        marketPriceNas = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[1]/span')
+        print(marketPriceNas.text)
+        indexChangeNas = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[2]/span')
+        print(indexChangeNas.text)
+        marketPercentageNas = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[3]')
+        marketPercentageValueNas = marketPercentageNas.get_attribute("data-value")
+        print(marketPercentageValueNas)
+    except:
+        print("The S&P 500 can not be accessed from Yahoo Finance.")
 
 main()
 driver.quit()
