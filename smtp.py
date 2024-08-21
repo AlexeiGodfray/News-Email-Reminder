@@ -10,7 +10,7 @@ from_addr = os.getenv("EMAIL_ADDRESS")
 to_addrs = os.getenv("EMAIL_RECIPIENT")
 email_password = os.getenv("EMAIL_PASSWORD")
 
-def email_logic():
+def email_logic(mail):
     # Prepare the message
     msg = EmailMessage()
     msg["From"] = from_addr
@@ -18,7 +18,7 @@ def email_logic():
     msg["Subject"] = "News of Today"
 
     # Auto-generate the message content
-    message_lines = "auto populate"
+    message_lines = mail
     msg.set_content("\n".join(message_lines))
 
     print("Message length is", len(msg.as_string()))
