@@ -1,27 +1,31 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 import datetime
-from smtp import *
+from smtp import email_logic  # Importing the email logic from smtp.py
 
+# Setup for Selenium and WebDriver
 date = datetime.datetime.now()
 chrome_options = Options()
-#ad block may influence the site interaction
 chrome_options.add_argument("--disable-extensions")
-# chrome_options.add_argument("--disable-gpu")
-# chrome_options.add_argument("--no-sandbox") # linux only
-chrome_options.add_argument("--headless=new") # for Chrome >= 109
+chrome_options.add_argument("--headless=new")  # For Chrome >= 109
 driver = webdriver.Chrome(options=chrome_options)
 
 def main():
     print(f"The News for {date}")
-    npr_info()
-    BBC_info()
-    Yahoo()
-    email_logic()
+    
+    # Collecting all scraped data
+    scraped_info = []
+    scraped_info.extend(npr_info())
+    scraped_info.extend(BBC_info())
+    scraped_info.extend(Yahoo())
+    
+    # Sending the collected info via email
+    email_logic(scraped_info)
+
+    # Quitting the driver
+    driver.quit()
 
 def npr_info():
     urls = [
@@ -29,91 +33,77 @@ def npr_info():
         "https://www.npr.org/sections/politics/",
         "https://www.npr.org/sections/world/"
     ]
-
+    headlines = []
+    
     for url in urls:
         try:
             driver.get(url)
-            Headline1 = driver.find_element("xpath", '//*[@id="featured"]/div/article[1]/div[2]/div/h2/a')
-            Headline2 = driver.find_element("xpath", '//*[@id="featured"]/div/article[2]/div[2]/div/h2/a')
-            Headline3 = driver.find_element("xpath", '//*[@id="featured"]/div/article[3]/div[2]/div/h2/a')
-            # Print or return the headlines if successful
-            print(f"Headlines from {url}:")
-            print(Headline1.text)
-            link1 = Headline1.get_attribute('href')
-            print(link1)
-            print(Headline2.text)
-            link2 = Headline2.get_attribute('href')
-            print(link2)
-            print(Headline3.text)
-            link3 = Headline3.get_attribute('href')
-            print(link3)
-            print("\n")
-            return #exists once successful 
+            Headline1 = driver.find_element(By.XPATH, '//*[@id="featured"]/div/article[1]/div[2]/div/h2/a')
+            Headline2 = driver.find_element(By.XPATH, '//*[@id="featured"]/div/article[2]/div[2]/div/h2/a')
+            Headline3 = driver.find_element(By.XPATH, '//*[@id="featured"]/div/article[3]/div[2]/div/h2/a')
+            
+            # Storing the headlines and links
+            headlines.append(f"NPR Headline 1: {Headline1.text} - {Headline1.get_attribute('href')}")
+            headlines.append(f"NPR Headline 2: {Headline2.text} - {Headline2.get_attribute('href')}")
+            headlines.append(f"NPR Headline 3: {Headline3.text} - {Headline3.get_attribute('href')}")
+            
+            return headlines  # Exit once successful
         except (NoSuchElementException, TimeoutException, WebDriverException):
-            #print(f"Trouble accessing {url}, trying next link.")
-            pass
-    print("There seems to be a problem accessing NPR at the moment.")
+            continue  # Try the next URL if the current one fails
+    
+    headlines.append("There seems to be a problem accessing NPR at the moment.")
+    return headlines
 
-#Web Scrapping Portion for The BBC
 def BBC_info():
     url = "https://www.bbc.com/news"
-    #we need a try catch statement for the main story as sometimes it maybe a live link, which changes the structure of the DOM
+    headlines = []
+    
     try:
         driver.get(url)
-        Headline1 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[1]/div/div/div[1]/a/div/div[2]/div[1]/div/h2')
-        link1 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[1]/div/div/div[1]/a')
-        link1 = link1.get_attribute("href")
-        print(Headline1.text)
-        print(link1)
+        Headline1 = driver.find_element(By.XPATH, '//*[@id="main-content"]/article/section[1]/div/div/div[1]/div/div/div[1]/a/div/div[2]/div[1]/div/h2')
+        link1 = driver.find_element(By.XPATH, '//*[@id="main-content"]/article/section[1]/div/div/div[1]/div/div/div[1]/a').get_attribute("href")
+        headlines.append(f"BBC Headline 1: {Headline1.text} - {link1}")
     except (NoSuchElementException, TimeoutException, WebDriverException):
-        print(f"Front Page Article from {url}, can't be loaded")
+        headlines.append(f"Front Page Article from {url} can't be loaded")
 
-    #try catch for the Side Stories
     try:
-        driver.get(url)
-        Headline2 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[2]/div/div/a/div/div[2]/div[1]/div/h2')
-        link2 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[2]/div/div/a')
-        link2 = link2.get_attribute("href")
-        print(Headline2.text)
-        print(link2)
-        Headline3 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[4]/div[1]/div/a/div/div/div[1]/div/h2')
-        link3 = driver.find_element("xpath", '//*[@id="main-content"]/article/section[1]/div/div/div[4]/div[1]/div/a')
-        link3 = link3.get_attribute("href")
-        print(Headline3.text)
-        print(link3)
+        Headline2 = driver.find_element(By.XPATH, '//*[@id="main-content"]/article/section[1]/div/div/div[2]/div/div/a/div/div[2]/div[1]/div/h2')
+        link2 = driver.find_element(By.XPATH, '//*[@id="main-content"]/article/section[1]/div/div/div[2]/div/div/a').get_attribute("href")
+        headlines.append(f"BBC Headline 2: {Headline2.text} - {link2}")
+        
+        Headline3 = driver.find_element(By.XPATH, '//*[@id="main-content"]/article/section[1]/div/div/div[4]/div[1]/div/a/div/div/div[1]/div/h2')
+        link3 = driver.find_element(By.XPATH, '//*[@id="main-content"]/article/section[1]/div/div/div[4]/div[1]/div/a').get_attribute("href")
+        headlines.append(f"BBC Headline 3: {Headline3.text} - {link3}")
     except (NoSuchElementException, TimeoutException, WebDriverException):
-        print("There was an error accessing the two side articles")
+        headlines.append("There was an error accessing the two side articles")
 
-    print("\n" + "\n")
+    return headlines
 
-#Yahoo stock markt Information 
 def Yahoo():
-    driver.get('https://finance.yahoo.com/quote/%5EGSPC/')
+    headlines = []
+    
     try:
-        indexName500 = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[1]/div/section/h1')
-        print(indexName500.text)
-        marketPrice500 = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[1]/span')
-        print(marketPrice500.text)
-        indexChange500 = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[2]/span')
-        print(indexChange500.text)
-        marketPercentage = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[3]')
+        driver.get('https://finance.yahoo.com/quote/%5EGSPC/')
+        indexName500 = driver.find_element(By.XPATH, '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[1]/div/section/h1')
+        marketPrice500 = driver.find_element(By.XPATH, '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[1]/span')
+        indexChange500 = driver.find_element(By.XPATH, '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[2]/span')
+        marketPercentage = driver.find_element(By.XPATH, '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[3]')
         marketPercentageValue = marketPercentage.get_attribute("data-value")
-        print(marketPercentageValue)
-        print("\n" + "\n")
-
+        
+        headlines.append(f"{indexName500.text}: {marketPrice500.text} ({indexChange500.text}, {marketPercentageValue}%)")
+        
         driver.get('https://finance.yahoo.com/quote/%5EIXIC/')
-        indexNameNas = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[1]/div/section/h1')
-        print(indexNameNas.text)
-        marketPriceNas = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[1]/span')
-        print(marketPriceNas.text)
-        indexChangeNas = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[2]/span')
-        print(indexChangeNas.text)
-        marketPercentageNas = driver.find_element("xpath", '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[3]')
+        indexNameNas = driver.find_element(By.XPATH, '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[1]/div/section/h1')
+        marketPriceNas = driver.find_element(By.XPATH, '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[1]/span')
+        indexChangeNas = driver.find_element(By.XPATH, '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[2]/span')
+        marketPercentageNas = driver.find_element(By.XPATH, '//*[@id="nimbus-app"]/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[3]')
         marketPercentageValueNas = marketPercentageNas.get_attribute("data-value")
-        print(marketPercentageValueNas)
-    except:
-        print("The S&P 500 can not be accessed from Yahoo Finance.")
+        
+        headlines.append(f"{indexNameNas.text}: {marketPriceNas.text} ({indexChangeNas.text}, {marketPercentageValueNas}%)")
+    except (NoSuchElementException, TimeoutException, WebDriverException):
+        headlines.append("The S&P 500 or NASDAQ cannot be accessed from Yahoo Finance.")
 
+    return headlines
 
+# Run the main function
 main()
-driver.quit()
