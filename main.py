@@ -4,8 +4,10 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
-import time
+import datetime
+from smtp import *
 
+date = datetime.datetime.now()
 chrome_options = Options()
 #ad block may influence the site interaction
 chrome_options.add_argument("--disable-extensions")
@@ -15,10 +17,11 @@ chrome_options.add_argument("--headless=new") # for Chrome >= 109
 driver = webdriver.Chrome(options=chrome_options)
 
 def main():
-    print("The News for ")
+    print(f"The News for {date}")
     npr_info()
     BBC_info()
     Yahoo()
+    email_logic()
 
 def npr_info():
     urls = [
@@ -110,6 +113,7 @@ def Yahoo():
         print(marketPercentageValueNas)
     except:
         print("The S&P 500 can not be accessed from Yahoo Finance.")
+
 
 main()
 driver.quit()
