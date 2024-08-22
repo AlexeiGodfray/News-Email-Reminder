@@ -3,7 +3,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 import datetime
-from smtp import email_logic  # Importing the email logic from smtp.py
+import time
+from smtp import email_logic
+import schedule
 
 # Setup for Selenium and WebDriver
 date = datetime.datetime.now()
@@ -105,5 +107,14 @@ def Yahoo():
 
     return headlines
 
-# Run the main function
-main()
+# Running the main function with scheudle 
+def run_schedule_job():
+    print("Job is running at 7am as specified")
+    main()
+
+schedule.every().day.at("07:00").do(run_schedule_job)
+
+#Keep the script running indefinitely 
+while True:
+    schedule.run_pending()
+    time.sleep(1)
